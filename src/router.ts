@@ -36,7 +36,7 @@ const router = createRouter({
 })
 
 //  Protection des routes
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
 
   //  Pas connecté → accès refusé aux pages protégées
