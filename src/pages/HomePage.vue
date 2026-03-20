@@ -1,19 +1,9 @@
 <template>
   <div class="container">
-    <NEmpty description="Page d'accueil à implémenter (tickets 2 et 3)" />
-    <ShowList :decks="decks" />
+    <HomePagePlayer />
   </div>
 </template>
 
 <script setup lang="ts">
-import ShowList from '../components/layout/ShowList.vue'
-
-const decks = [
-  {
-    id: 1,
-    name: 'Deck test',
-    userId: 1,
-    cards: [],
-  },
-]
+import HomePagePlayer from '../components/layout/HomePagePlayer.vue'
 </script>
