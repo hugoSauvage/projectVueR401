@@ -3,6 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth.store'
 
 import ConnexionPage from './pages/ConnexionPage.vue'
+import DeckCreat from './pages/DeckCreat.vue'
+import DeckDetail from './pages/DeckDetail.vue'
 import HomePage from './pages/HomePage.vue'
 import InscriptionPage from './pages/InscriptionPage.vue'
 
@@ -10,6 +12,9 @@ export const ROUTES = {
   HOME: '/',
   CONNEXION: '/login',
   REGISTER: '/register',
+  DECK_CREATE: '/decks/create',
+  DECK_DETAIL: '/decks/:id', // ← before DECK_EDIT
+  DECK_EDIT: '/decks/:id/edit',
 } as const
 
 const routes = [
@@ -28,6 +33,21 @@ const routes = [
     component: InscriptionPage,
     meta: { requiresAuth: false },
   },
+  {
+    path: ROUTES.DECK_CREATE,
+    component: DeckCreat,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: ROUTES.DECK_DETAIL, // ← before DECK_EDIT
+    component: DeckDetail,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: ROUTES.DECK_EDIT,
+    component: DeckCreat,
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
@@ -35,16 +55,13 @@ const router = createRouter({
   routes,
 })
 
-//  Protection des routes
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
 
-  //  Pas connecté → accès refusé aux pages protégées
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next(ROUTES.CONNEXION)
   }
 
-  // Déjà connecté → empêche d'aller sur login/register
   if (
     !to.meta.requiresAuth &&
     authStore.isAuthenticated &&
@@ -53,7 +70,6 @@ router.beforeEach((to, _from, next) => {
     return next(ROUTES.HOME)
   }
 
-  //  Sinon tout passe
   next()
 })
 
