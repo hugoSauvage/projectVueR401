@@ -1,6 +1,6 @@
 <template>
   <div class="game-page">
-    <!-- ══ ZONE ADVERSAIRE (haut) ══════════════════════════════════════════ -->
+    <!-- ══ RG1 – ZONE ADVERSAIRE (haut) ════════════════════════════════════ -->
     <section class="zone zone--opponent">
       <div class="zone__header">
         <span class="zone__label">Adversaire</span>
@@ -16,7 +16,6 @@
       </div>
 
       <div class="zone__board">
-        <!-- Carte active adversaire -->
         <div v-if="opponentBoard?.activeCard" class="active-card">
           <img
             v-if="opponentBoard.activeCard.imageUrl"
@@ -45,7 +44,7 @@
           </div>
         </div>
 
-        <!-- Placeholder adversaire -->
+        <!-- RG3 – Placeholder adversaire -->
         <div v-else class="zone__placeholder">
           <span class="placeholder-icon">🂠</span>
           <span class="placeholder-text">Aucune carte en jeu</span>
@@ -53,54 +52,19 @@
       </div>
     </section>
 
-    <!-- ══ BARRE D'ACTIONS (milieu) ════════════════════════════════════════ -->
-    <section class="action-bar">
-      <!-- Indicateur de tour -->
-      <div class="turn-indicator" :class="{ 'turn-indicator--mine': isMyTurn }">
-        <span class="turn-dot" />
-        <span class="turn-label">
-          {{ isMyTurn ? 'Votre tour' : "Tour de l'adversaire" }}
-        </span>
-      </div>
+    <!-- ══ RG1 – BARRE D'ACTIONS (milieu) ══════════════════════════════════ -->
+    <ActionBar
+      :is-my-turn="isMyTurn"
+      :is-hand-full="isHandFull"
+      :is-deck-empty="isDeckEmpty"
+      :can-attack="canAttack"
+      :last-event="lastEvent"
+      @draw="gameStore.drawCards()"
+      @attack="gameStore.attack()"
+      @end-turn="gameStore.endTurn()"
+    />
 
-      <!-- Message temps réel (RG7) -->
-      <div v-if="lastEvent" class="last-event">
-        {{ lastEvent }}
-      </div>
-
-      <!-- Actions -->
-      <div class="action-bar__buttons">
-        <!-- Piocher : désactivé si main pleine (5) ou deck vide (RG4) -->
-        <NButton
-          type="default"
-          :disabled="!isMyTurn || isHandFull || isDeckEmpty"
-          @click="gameStore.drawCards()"
-        >
-          🃏 Piocher
-        </NButton>
-
-        <!-- Attaquer : désactivé si une carte manque (RG5) -->
-        <NButton
-          type="primary"
-          color="#4caf82"
-          :disabled="!isMyTurn || !canAttack"
-          @click="gameStore.attack()"
-        >
-          ⚔️ Attaquer
-        </NButton>
-
-        <!-- Fin de tour (RG6) -->
-        <NButton
-          type="default"
-          :disabled="!isMyTurn"
-          @click="gameStore.endTurn()"
-        >
-          ⏭ Fin de tour
-        </NButton>
-      </div>
-    </section>
-
-    <!-- ══ ZONE JOUEUR (bas) ════════════════════════════════════════════════ -->
+    <!-- ══ RG1 – ZONE JOUEUR (bas) ══════════════════════════════════════════ -->
     <section class="zone zone--player">
       <div class="zone__header">
         <span class="zone__label">Vous</span>
@@ -116,7 +80,6 @@
       </div>
 
       <div class="zone__board">
-        <!-- Carte active joueur -->
         <div v-if="myBoard?.activeCard" class="active-card">
           <img
             v-if="myBoard.activeCard.imageUrl"
@@ -142,89 +105,38 @@
           </div>
         </div>
 
-        <!-- Placeholder joueur -->
+        <!-- RG3 – Placeholder joueur -->
         <div v-else class="zone__placeholder">
           <span class="placeholder-icon">🂠</span>
           <span class="placeholder-text">Aucune carte en jeu</span>
         </div>
       </div>
 
-      <!-- ── Main du joueur ── -->
-      <div class="hand">
-        <div class="hand__header">
-          <span class="hand__label">Main</span>
-          <span class="hand__counts">
-            {{ myBoard?.hand?.length ?? 0 }}/5 cartes ·
-            {{ myBoard?.deckCount ?? 0 }} restantes dans le deck
-          </span>
-        </div>
-
-        <div class="hand__cards">
-          <!-- Cartes en main (max 5) -->
-          <div
-            v-for="card in myBoard?.hand ?? []"
-            :key="card.id"
-            class="hand-card"
-            :class="{
-              'hand-card--playable': canPlayCard,
-              'hand-card--disabled': !canPlayCard,
-            }"
-            @click="handlePlayCard(card.id)"
-          >
-            <img
-              v-if="card.imageUrl"
-              :src="card.imageUrl"
-              :alt="card.name"
-              class="hand-card__img"
-            />
-            <div v-else class="hand-card__img hand-card__img--placeholder">
-              🃏
-            </div>
-            <span class="hand-card__name">{{ card.name }}</span>
-          </div>
-
-          <!-- Placeholder main vide -->
-          <div v-if="(myBoard?.hand?.length ?? 0) === 0" class="hand__empty">
-            Aucune carte en main
-          </div>
-        </div>
-      </div>
+      <!-- RG1 – Main du joueur -->
+      <PlayerHand
+        :cards="myBoard?.hand ?? []"
+        :deck-count="myBoard?.deckCount ?? 0"
+        :can-play="canPlayCard"
+        @play-card="gameStore.playCard($event)"
+      />
     </section>
 
-    <!-- ══ MODAL FIN DE PARTIE ══════════════════════════════════════════════ -->
-    <NModal v-model:show="showEndModal" :mask-closable="false">
-      <NCard class="end-modal" :bordered="false">
-        <div class="end-modal__content">
-          <span class="end-modal__emoji">{{ isWinner ? '🏆' : '💀' }}</span>
-          <h2 class="end-modal__title">
-            {{ isWinner ? 'Victoire !' : 'Défaite' }}
-          </h2>
-          <p class="end-modal__subtitle">
-            {{
-              isWinner
-                ? 'Félicitations, vous avez gagné la partie !'
-                : 'Vous avez perdu. Bonne chance la prochaine fois !'
-            }}
-          </p>
-          <NButton
-            type="primary"
-            color="#4caf82"
-            size="large"
-            @click="handleBackToLobby"
-          >
-            Retour au lobby
-          </NButton>
-        </div>
-      </NCard>
-    </NModal>
+    <!-- ══ RG8 – MODAL FIN DE PARTIE ════════════════════════════════════════ -->
+    <GameEndModal
+      :show="showEndModal"
+      :is-winner="isWinner"
+      @back-to-lobby="handleBackToLobby"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NCard, NModal } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import ActionBar from '@/components/layout/ActionBar.vue'
+import GameEndModal from '@/components/layout/GameEndModal.vue'
+import PlayerHand from '@/components/layout/Playerhand.vue'
 import { useGameStore } from '@/store/game'
 import type { ActiveCard } from '@/types/game'
 
@@ -266,12 +178,6 @@ watch(gameStatus, (val) => {
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-/** RG2 – Jouer une carte uniquement si c'est le tour et pas de carte active */
-function handlePlayCard(cardId: number) {
-  if (!canPlayCard.value) return
-  gameStore.playCard(cardId)
-}
-
 /** RG9 – Retour au lobby */
 function handleBackToLobby() {
   gameStore.resetGame()
@@ -293,7 +199,6 @@ function hpClass(card: ActiveCard): string {
 </script>
 
 <style scoped>
-/* ── Layout général ── */
 .game-page {
   display: flex;
   flex-direction: column;
@@ -302,7 +207,6 @@ function hpClass(card: ActiveCard): string {
   overflow: hidden;
 }
 
-/* ── Zones (adversaire + joueur) ── */
 .zone {
   flex: 1;
   display: flex;
@@ -319,14 +223,12 @@ function hpClass(card: ActiveCard): string {
 .zone--opponent {
   margin-bottom: 0;
 }
-
 .zone--player {
   margin-top: 0;
   margin-bottom: 8px;
   flex: 1.6;
 }
 
-/* ── Header de zone ── */
 .zone__header {
   display: flex;
   align-items: center;
@@ -354,7 +256,6 @@ function hpClass(card: ActiveCard): string {
   margin-left: 4px;
 }
 
-/* ── KO pips ── */
 .ko-pip {
   width: 10px;
   height: 10px;
@@ -371,7 +272,6 @@ function hpClass(card: ActiveCard): string {
   border-color: #4caf82;
 }
 
-/* ── Carte active ── */
 .zone__board {
   display: flex;
   align-items: center;
@@ -426,7 +326,6 @@ function hpClass(card: ActiveCard): string {
   text-overflow: ellipsis;
 }
 
-/* ── HP bar ── */
 .hp-bar {
   height: 7px;
   background: #eee;
@@ -455,7 +354,6 @@ function hpClass(card: ActiveCard): string {
   color: #888;
 }
 
-/* ── Placeholder ── */
 .zone__placeholder {
   display: flex;
   flex-direction: column;
@@ -475,192 +373,5 @@ function hpClass(card: ActiveCard): string {
 
 .placeholder-text {
   font-size: 12px;
-}
-
-/* ── Barre d'actions ── */
-.action-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: #fff;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.turn-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #aaa;
-  padding: 5px 10px;
-  border-radius: 20px;
-  background: #f5f5f5;
-  border: 1px solid #eee;
-}
-
-.turn-indicator--mine {
-  color: #4caf82;
-  background: #f0faf5;
-  border-color: #c3e8d5;
-}
-
-.turn-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-
-.last-event {
-  flex: 1;
-  font-size: 12px;
-  color: #777;
-  font-style: italic;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.action-bar__buttons {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-/* ── Main du joueur ── */
-.hand {
-  margin-top: 10px;
-  border-top: 1px solid #f0f0f0;
-  padding-top: 10px;
-}
-
-.hand__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.hand__label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.hand__counts {
-  font-size: 11px;
-  color: #aaa;
-}
-
-.hand__cards {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.hand__empty {
-  font-size: 12px;
-  color: #bbb;
-  padding: 8px 0;
-}
-
-/* ── Carte en main ── */
-.hand-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  border: 1.5px solid #eee;
-  padding: 6px;
-  background: #fafafa;
-  transition:
-    border-color 0.2s,
-    transform 0.15s,
-    box-shadow 0.15s;
-  width: 72px;
-}
-
-.hand-card--playable {
-  cursor: pointer;
-}
-
-.hand-card--playable:hover {
-  border-color: #4caf82;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(76, 175, 130, 0.2);
-}
-
-.hand-card--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.hand-card__img {
-  width: 56px;
-  height: 78px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid #eee;
-}
-
-.hand-card__img--placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  background: #f0f0f0;
-}
-
-.hand-card__name {
-  font-size: 10px;
-  color: #555;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-/* ── Modal fin de partie ── */
-.end-modal {
-  width: 360px;
-  border-radius: 12px;
-}
-
-.end-modal__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
-  text-align: center;
-}
-
-.end-modal__emoji {
-  font-size: 3.5rem;
-}
-
-.end-modal__title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #222;
-  margin: 0;
-}
-
-.end-modal__subtitle {
-  font-size: 14px;
-  color: #777;
-  margin: 0;
 }
 </style>
