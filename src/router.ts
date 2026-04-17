@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth.store'
 import ConnexionPage from './pages/ConnexionPage.vue'
 import DeckCreat from './pages/DeckCreat.vue'
 import DeckDetail from './pages/DeckDetail.vue'
+import GamePage from './pages/GamePage.vue'
 import HomePage from './pages/HomePage.vue'
 import InscriptionPage from './pages/InscriptionPage.vue'
 
@@ -13,8 +14,9 @@ export const ROUTES = {
   CONNEXION: '/login',
   REGISTER: '/register',
   DECK_CREATE: '/decks/create',
-  DECK_DETAIL: '/decks/:id', // ← before DECK_EDIT
+  DECK_DETAIL: '/decks/:id',
   DECK_EDIT: '/decks/:id/edit',
+  GAME: '/game',
 } as const
 
 const routes = [
@@ -39,13 +41,18 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: ROUTES.DECK_DETAIL, // ← before DECK_EDIT
+    path: ROUTES.DECK_DETAIL,
     component: DeckDetail,
     meta: { requiresAuth: true },
   },
   {
     path: ROUTES.DECK_EDIT,
     component: DeckCreat,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: ROUTES.GAME,
+    component: GamePage,
     meta: { requiresAuth: true },
   },
 ]
