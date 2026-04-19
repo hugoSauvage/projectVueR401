@@ -23,6 +23,21 @@ const selectedIds = ref<number[]>([])
 const cards = ref<Card[]>([])
 const loading = ref(false)
 
+// ── RG1/RG2 – Recherche ──────────────────────────────────────────────────────
+const search = ref('')
+
+/**
+ * RG2 – Filtre les cartes par nom en temps réel.
+ * RG3 – Les cartes déjà sélectionnées restent toujours visibles.
+ */
+const filteredCards = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return cards.value
+  return cards.value.filter(
+    (c) => c.name.toLowerCase().includes(q) || selectedIds.value.includes(c.id),
+  )
+})
+
 async function fetchCards() {
   loading.value = true
   try {
@@ -41,7 +56,7 @@ async function fetchExistingDeck() {
   try {
     const deck = await api.getDeck(deckId.value)
     deckName.value = deck.name
-    selectedIds.value = deck.cards.map((c) => c.cardId) // RG3 édition
+    selectedIds.value = deck.cards.map((c) => c.cardId)
   } catch (e) {
     message.error(
       e instanceof Error ? e.message : 'Impossible de charger le deck.',
@@ -54,7 +69,6 @@ onMounted(async () => {
   if (deckId.value) await fetchExistingDeck()
 })
 
-// RG3 création
 const isFormValid = computed(
   () =>
     deckName.value.trim().length > 0 && selectedIds.value.length === MAX_CARDS,
@@ -67,11 +81,11 @@ async function handleSave() {
     if (isEditMode.value && deckId.value) {
       await api.updateDeck(deckId.value, payload)
       message.success('Deck modifié !')
-      router.push(ROUTES.DECK_DETAIL.replace(':id', deckId.value)) // RG4 édition
+      router.push(ROUTES.DECK_DETAIL.replace(':id', deckId.value))
     } else {
       await api.createDeck(payload)
       message.success('Deck créé !')
-      router.push(ROUTES.HOME) // RG4 création
+      router.push(ROUTES.HOME)
     }
   } catch (e) {
     message.error(
@@ -95,7 +109,6 @@ async function handleSave() {
       <NInput v-model:value="deckName" placeholder="Mon super deck" />
     </div>
 
-    <!-- RG2 compteur -->
     <p class="card-count">
       <strong :class="{ complete: selectedIds.length === MAX_CARDS }">
         {{ selectedIds.length }}/{{ MAX_CARDS }}
@@ -109,7 +122,6 @@ async function handleSave() {
       >
     </p>
 
-    <!-- RG3 bouton bloqué -->
     <NButton
       :disabled="!isFormValid"
       color="#4caf82"
@@ -122,14 +134,23 @@ async function handleSave() {
 
     <div v-if="loading" class="loading">Chargement des cartes…</div>
 
-    <!-- RG1 : CardGrid en mode sélection -->
-    <CardList
-      v-else
-      v-model:selected-ids="selectedIds"
-      :cards="cards"
-      :max-selection="MAX_CARDS"
-      size="md"
-    />
+    <template v-else>
+      <!-- RG1 – Champ de recherche au-dessus de la grille -->
+      <NInput
+        v-model:value="search"
+        placeholder="Rechercher une carte…"
+        clearable
+        class="search-input"
+      />
+
+      <!-- RG2/RG3 – Grille filtrée -->
+      <CardList
+        v-model:selected-ids="selectedIds"
+        :cards="filteredCards"
+        :max-selection="MAX_CARDS"
+        size="md"
+      />
+    </template>
   </div>
 </template>
 
@@ -202,5 +223,8 @@ async function handleSave() {
   text-align: center;
   color: #999;
   padding: 40px;
+}
+.search-input {
+  margin-bottom: 16px;
 }
 </style>
