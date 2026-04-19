@@ -74,3 +74,4 @@ jobs:
             }
 
             console.log(`\n📊 Summary: ${closedCount} closed, ${createdCount} created`);
+
