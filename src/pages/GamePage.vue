@@ -215,9 +215,16 @@ function hpClass(card: ActiveCard): string {
   border: 1px solid #e8e8e8;
   border-radius: 8px;
   margin: 8px 12px 0;
-  padding: 14px 16px;
+  padding: 10px 12px;
   min-height: 0;
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .zone {
+    padding: 14px 16px;
+    margin: 8px 16px 0;
+  }
 }
 
 .zone--opponent {

@@ -158,13 +158,23 @@ async function handleSave() {
 .page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  /* RG3 – pleine largeur sur mobile, contrainte sur grand écran */
+  padding: 16px 12px 40px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .page {
+    padding: 20px 16px 40px;
+  }
 }
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 .back-btn {
   background: none;

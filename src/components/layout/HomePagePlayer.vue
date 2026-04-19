@@ -101,7 +101,7 @@
         <div v-if="decks.length === 0" class="no-deck">
           Aucun deck — créez-en un !
         </div>
-        <NSpace vertical>
+        <div class="decks-grid">
           <DeckCard
             v-for="deck in decks"
             :key="deck.id"
@@ -109,22 +109,14 @@
             @edit-deck="handleEditDeck"
             @delete-deck="handleDeleteDeck"
           />
-        </NSpace>
+        </div>
       </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NSelect,
-  NSpace,
-  NSpin,
-  useMessage,
-} from 'naive-ui'
+import { NButton, NCard, NEmpty, NSelect, NSpin, useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -250,11 +242,18 @@ onUnmounted(() => {
   color: #222;
 }
 
+/* ── RG1 – Grille de jeu responsive ── */
 .play-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 32px;
+}
+
+@media (max-width: 640px) {
+  .play-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .play-card {
@@ -354,7 +353,7 @@ onUnmounted(() => {
   flex: 1;
 }
 
-/* ── Decks ── */
+/* ── RG2 – Liste des decks multi-colonnes ── */
 .decks-header {
   display: flex;
   justify-content: space-between;
@@ -364,6 +363,24 @@ onUnmounted(() => {
 
 .decks-header .section-title {
   margin: 0;
+}
+
+.decks-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .decks-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .decks-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .no-deck {

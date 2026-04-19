@@ -110,7 +110,28 @@ const emit = defineEmits<(e: 'draw' | 'attack' | 'end-turn') => void>()
 
 .action-bar__buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .action-bar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .turn-indicator {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .last-event {
+    width: 100%;
+    flex: unset;
+    order: 3;
+  }
+  .action-bar__buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 </style>
